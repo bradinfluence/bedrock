@@ -82,9 +82,8 @@ Config::define('WP_MAX_MEMORY_LIMIT', '2048M');
 /**
  * URLs
  */
-$wp_home = getenv('CLOUDRON_APP_ORIGIN') ?: env('WP_HOME');
-Config::define('WP_HOME', $wp_home);
-Config::define('WP_SITEURL', env('WP_SITEURL') ?: WP_HOME . '/wp');
+Config::define('WP_HOME', env('WP_HOME'));
+Config::define('WP_SITEURL', env('WP_SITEURL'));
 
 /**
  * Custom Content Directory
@@ -138,17 +137,6 @@ if (env('WP_ENV') === 'production') {
 } else {
     Config::define('WP_CACHE', false); // Disable Redis caching in non-production environments
 }
-
-/**
- * Multisite Configuration
- */
-Config::define('WP_ALLOW_MULTISITE', env('WP_ALLOW_MULTISITE') ?: false);
-Config::define('MULTISITE', env('MULTISITE') ?: false);
-Config::define('SUBDOMAIN_INSTALL', env('SUBDOMAIN_INSTALL') ?: false);
-Config::define('DOMAIN_CURRENT_SITE', env('DOMAIN_CURRENT_SITE') ?: parse_url($wp_home, PHP_URL_HOST));
-Config::define('PATH_CURRENT_SITE', env('PATH_CURRENT_SITE') ?: '/');
-Config::define('SITE_ID_CURRENT_SITE', env('SITE_ID_CURRENT_SITE') ?: 1);
-Config::define('BLOG_ID_CURRENT_SITE', env('BLOG_ID_CURRENT_SITE') ?: 1);
 
 /**
  * Cloudflare
