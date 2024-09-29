@@ -3,59 +3,43 @@
  * Your base production configuration goes in this file. Environment-specific
  * overrides go in their respective config/environments/{{WP_ENV}}.php file.
  */
-
 use Roots\WPConfig\Config;
 use function Env\env;
 
-// Enable all options for Env\Env (USE_ENV_ARRAY + CONVERT_* + STRIP_QUOTES)
+// USE_ENV_ARRAY + CONVERT_* + STRIP_QUOTES
 Env\Env::$options = 31;
 
 /**
  * Directory containing all of the site's files
+ *
+ * @var string
  */
 $root_dir = dirname(__DIR__);
 
 /**
  * Document Root
+ *
+ * @var string
  */
 $webroot_dir = $root_dir . '/public';
 
 /**
- * Cloudron Health Check
- * Respond to the health check request from Cloudron
+ * Use Dotenv to set required environment variables and load .env file in root
+ * .env.local will override .env if it exists
  */
-if ($_SERVER["REMOTE_ADDR"] === '172.18.0.1') {
-    echo "Cloudron healthcheck response";
-    exit;
-}
+if (file_exists($root_dir . '/.env')) {
+    $env_files = file_exists($root_dir . '/.env.local')
+        ? ['.env', '.env.local']
+        : ['.env'];
 
-/**
- * Handle Reverse Proxy (HTTPS detection and host forwarding)
- * This ensures that WordPress properly handles requests behind a reverse proxy,
- * where HTTPS is proxied to HTTP.
- */
-if (!empty($_SERVER['HTTP_X_FORWARDED_FOR'])) {
-    $_SERVER['HTTP_HOST'] = $_SERVER['HTTP_X_FORWARDED_HOST'] ?? $_SERVER['HTTP_HOST'];
-    
-    if ($_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https') {
-        $_SERVER['HTTPS'] = 'on';
+    $dotenv = Dotenv\Dotenv::createImmutable($root_dir, $env_files, false);
+
+    $dotenv->load();
+
+    $dotenv->required(['WP_HOME', 'WP_SITEURL']);
+    if (!env('DATABASE_URL')) {
+        $dotenv->required(['DB_NAME', 'DB_USER', 'DB_PASSWORD']);
     }
-}
-
-/**
- * Use Dotenv to set environment variables
- */
-$env_files = file_exists($root_dir . '/.env.local')
-    ? ['.env', '.env.local']
-    : ['.env'];
-
-$dotenv = Dotenv\Dotenv::createImmutable($root_dir, $env_files, false);
-$dotenv->load();
-
-// Require essential variables
-$dotenv->required(['WP_HOME', 'WP_SITEURL']);
-if (!env('DATABASE_URL')) {
-    $dotenv->required(['DB_NAME', 'DB_USER', 'DB_PASSWORD']);
 }
 
 /**
